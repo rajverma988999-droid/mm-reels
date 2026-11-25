@@ -1,0 +1,582 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1080, height=1920">
+<!-- V4 chai demo (approved 2026-11-23), worked example of skill meanwhile-mayank-style-reels (see README.md, BEAT_SHEET.md) -->
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+<style>
+@font-face { font-family: "Anton"; src: url("assets/fonts/Anton-Regular.ttf") format("truetype"); font-display: block; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1080px; height: 1920px; overflow: hidden; background: #120b06; }
+#root { position: relative; width: 1080px; height: 1920px; overflow: hidden; background: #120b06; font-family: "Anton", sans-serif; }
+
+/* ---------- scenes + camera ---------- */
+.scene { position: absolute; inset: 0; opacity: 0; overflow: hidden; }
+.cam { position: absolute; inset: 0; }
+.bg { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; object-fit: cover; }
+.ruled { position: absolute; inset: 0; background: repeating-linear-gradient(180deg, rgba(0,0,0,0) 0 40px, rgba(70,45,0,.07) 40px 41px); }
+.pw { position: absolute; filter: drop-shadow(0 22px 26px rgba(0,0,0,.45)) drop-shadow(0 4px 6px rgba(0,0,0,.35)); }
+.pw img { display: block; width: 100%; height: auto; }
+.soft { filter: drop-shadow(0 0 30px rgba(0,0,0,.35)); }
+
+/* ---------- titles (skill §4) ---------- */
+#titles { position: absolute; inset: 0; z-index: 85; pointer-events: none; }
+.title { position: absolute; left: 97px; top: 272px; opacity: 0; }
+.l1 { font-size: 92px; letter-spacing: .015em; line-height: .95; color: #FCEEDA; white-space: nowrap;
+      text-shadow: 0 0 18px rgba(255,214,160,.55), 0 2px 6px rgba(0,0,0,.45); }
+.l2-mask { overflow: hidden; padding: 4px 40px 10px 0; margin-right: -40px; }
+.l2 { font-size: 140px; letter-spacing: .03em; line-height: .98; white-space: nowrap; color: transparent;
+      -webkit-background-clip: text; background-clip: text; }
+.g-pink  { filter: drop-shadow(0 3px 5px rgba(0,0,0,.55)) drop-shadow(0 0 18px rgba(253,98,114,.55)); }  .g-pink .l2  { background-image: linear-gradient(180deg,#FE949F 12%,#FD6272 88%); }
+.g-peach { filter: drop-shadow(0 3px 5px rgba(0,0,0,.55)) drop-shadow(0 0 18px rgba(253,123,47,.5)); }   .g-peach .l2 { background-image: linear-gradient(180deg,#FEAC70 12%,#FD7B2F 88%); }
+.g-gold  { filter: drop-shadow(0 3px 5px rgba(0,0,0,.55)) drop-shadow(0 0 18px rgba(252,190,81,.5)); }   .g-gold .l2  { background-image: linear-gradient(180deg,#FDDE99 12%,#FCBE51 88%); }
+.g-cyan  { filter: drop-shadow(0 3px 5px rgba(0,0,0,.55)) drop-shadow(0 0 18px rgba(113,250,253,.45)); } .g-cyan .l2  { background-image: linear-gradient(180deg,#D4F9F9 12%,#71FAFD 88%); }
+.g-lime  { filter: drop-shadow(0 3px 5px rgba(0,0,0,.55)) drop-shadow(0 0 18px rgba(155,232,48,.45)); }  .g-lime .l2  { background-image: linear-gradient(180deg,#E6FF9E 12%,#9BE830 88%); }
+
+/* ---------- physical counter plate (skill §3c) ---------- */
+.plate { position: absolute; display: flex; align-items: center; gap: 10px; padding: 16px 22px; background: #F3E6CC;
+         border: 3px solid #C8202F; outline: 2px solid #C8202F; outline-offset: -11px; border-radius: 10px;
+         box-shadow: 0 18px 30px rgba(0,0,0,.45), inset 0 2px 0 rgba(255,255,255,.6); }
+.tile { width: 86px; height: 120px; overflow: hidden; background: linear-gradient(#3a2c20,#211810); border-radius: 6px;
+        box-shadow: inset 0 0 0 2px rgba(0,0,0,.5), inset 0 -2px 0 rgba(255,255,255,.08); position: relative; }
+.tile::after { content: ""; position: absolute; left: 0; right: 0; top: 59px; height: 2px; background: rgba(0,0,0,.6); }
+.strip div, .tile .fix { height: 120px; line-height: 120px; text-align: center; font-size: 96px; color: #F3E6CC; }
+.unit { font-size: 100px; color: #C8202F; line-height: 1; padding-left: 6px; }
+
+/* ---------- misc props drawn in code ---------- */
+.shadowOval { position: absolute; border-radius: 50%; background: radial-gradient(closest-side, rgba(0,0,0,.5), rgba(0,0,0,0)); }
+#card { position: absolute; left: 80px; top: 1080px; width: 620px; padding: 30px 34px 28px; background: #F6EEDC; color: #2a1d12;
+        font-family: Georgia, "Times New Roman", serif; box-shadow: 0 24px 40px rgba(0,0,0,.5); border-radius: 4px; }
+#card .src { font-size: 28px; letter-spacing: .08em; text-transform: uppercase; color: #8a2b1e; font-weight: bold; }
+#card .hl { font-size: 38px; line-height: 1.15; margin-top: 10px; font-weight: bold; }
+#card .by { font-size: 28px; margin-top: 12px; color: #6b5a48; }
+#pin { position: absolute; left: 290px; top: -22px; width: 44px; height: 44px; border-radius: 50%;
+       background: radial-gradient(circle at 35% 35%, #ff8a8a, #d0182b 55%, #7a0613); box-shadow: 0 8px 10px rgba(0,0,0,.45); }
+.bub { position: absolute; border-radius: 50%; border: 3px solid rgba(255,236,200,.55); background: radial-gradient(circle at 35% 30%, rgba(255,255,255,.5), rgba(255,255,255,0) 60%); }
+.glowBlob { position: absolute; border-radius: 50%; opacity: 0; }
+#divN { position: absolute; left: 625px; top: 820px; height: 480px; border-left: 6px dashed rgba(60,35,5,.55); }
+#pillN { position: absolute; left: 513px; top: 1020px; width: 230px; padding: 14px 0; text-align: center; border-radius: 40px;
+         background: linear-gradient(#E6FF9E,#9BE830); color: #1d2a05; font-size: 46px; letter-spacing: .03em;
+         box-shadow: 0 12px 24px rgba(0,0,0,.35); }
+
+/* ---------- notebook overlay (skill §5) ---------- */
+#vig { position: absolute; inset: 0; z-index: 70; pointer-events: none;
+       background: linear-gradient(180deg, rgba(20,10,0,.78) 0%, rgba(20,10,0,.55) 18%, rgba(0,0,0,0) 34%),
+                   radial-gradient(ellipse at 50% 55%, rgba(0,0,0,0) 58%, rgba(0,0,0,.42) 100%); }
+#overlay { position: absolute; inset: 0; z-index: 90; pointer-events: none; }
+.crease { position: absolute; top: 0; bottom: 0; left: 660px; width: 30px;
+          background: linear-gradient(90deg, rgba(0,0,0,0) 0px, rgba(0,0,0,.16) 4px, rgba(0,0,0,.16) 11px, rgba(0,0,0,0) 15px,
+                                             rgba(255,255,255,0) 17px, rgba(255,255,255,.14) 20px, rgba(255,255,255,.14) 25px, rgba(255,255,255,0) 28px); }
+.hole { position: absolute; left: 31px; width: 24px; height: 24px; border-radius: 50%; background: rgba(20,12,6,.78);
+        box-shadow: inset 0 3px 4px rgba(0,0,0,.7), 0 1px 0 rgba(255,255,255,.2); }
+.grain { position: absolute; inset: 0; background: url("assets/img/grain.png"); opacity: .07; mix-blend-mode: overlay; }
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="main" data-start="0" data-duration="39.5" data-width="1080" data-height="1920">
+
+<!-- ===== A 0.00–3.10  teal cloth: thali slides in, chai drops (hook action 1+2) ===== -->
+<div id="sA" class="scene"><div class="cam" id="camA">
+  <img class="bg" src="assets/img/B1_teal_cloth.jpg" alt="">
+  <div class="pw" id="thaliA" style="left:110px; top:980px; width:620px;"><img src="assets/img/P1_thali.png" alt=""></div>
+  <div class="pw" id="glassA" style="left:690px; top:880px; width:300px;"><img src="assets/img/P2_chai_glass_top.png" alt=""></div>
+  <svg id="steamA" style="position:absolute; left:700px; top:560px; width:280px; height:420px;" viewBox="0 0 200 300">
+    <defs><filter id="fSteam"><feGaussianBlur stdDeviation="7"/></filter></defs>
+    <path id="st1" d="M 75 290 Q 45 210 85 150 T 70 20" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="16" stroke-linecap="round" filter="url(#fSteam)" opacity="0"/>
+    <path id="st2" d="M 120 295 Q 150 220 115 150 T 135 30" fill="none" stroke="rgba(255,255,255,.42)" stroke-width="13" stroke-linecap="round" filter="url(#fSteam)" opacity="0"/>
+  </svg>
+</div></div>
+
+<!-- ===== B 2.80–5.35  same hand + chai, background swaps on each word (hook action 3) ===== -->
+<div id="sB" class="scene"><div class="cam" id="camB">
+  <img class="bg" id="bB2" src="assets/img/B2_kitchen.jpg" alt="">
+  <img class="bg" id="bB3" src="assets/img/B3_office.jpg" alt="" style="opacity:0">
+  <img class="bg" id="bB4" src="assets/img/B4_tapri.jpg" alt="" style="opacity:0">
+  <div class="pw" id="handB" style="left:120px; top:930px; width:960px;"><img src="assets/img/P3_hand_chai.png" alt=""></div>
+</div></div>
+
+<!-- ===== C 4.90–9.47  mustard: ? draws, stomach + chai drop, glow travels ===== -->
+<div id="sC" class="scene"><div class="cam" id="camC">
+  <img class="bg" src="assets/img/B11_mustard_paper.jpg" alt=""><div class="ruled"></div>
+  <svg id="qsvg" style="position:absolute; left:340px; top:700px; width:400px; height:520px; overflow:visible;" viewBox="0 0 400 520">
+    <defs>
+      <linearGradient id="red3d" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FF4A64"/><stop offset=".5" stop-color="#D3122E"/><stop offset="1" stop-color="#7A0617"/></linearGradient>
+      <filter id="qShadow" x="-30%" y="-30%" width="160%" height="170%"><feDropShadow dx="10" dy="22" stdDeviation="14" flood-color="#3a2500" flood-opacity=".55"/></filter>
+    </defs>
+    <g filter="url(#qShadow)">
+      <path class="draw" id="qc" d="M 112 160 C 112 60, 300 40, 300 160 C 300 245, 200 240, 200 340" fill="none" stroke="url(#red3d)" stroke-width="58" stroke-linecap="round"/>
+      <path class="draw" id="qg" d="M 128 150 C 132 82, 262 68, 278 150" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="10" stroke-linecap="round"/>
+      <circle id="qdot" cx="200" cy="448" r="36" fill="url(#red3d)"/>
+    </g>
+  </svg>
+  <div class="glowBlob" id="stoGlowC" style="left:470px; top:820px; width:560px; height:560px; background:radial-gradient(closest-side, rgba(255,170,60,.75), rgba(255,140,40,0));"></div>
+  <div class="pw" id="stoC" style="left:480px; top:760px; width:520px;"><img src="assets/img/P14_stomach.png" alt=""></div>
+  <div class="pw" id="glassC" style="left:150px; top:1060px; width:260px;"><img src="assets/img/P2_chai_glass_top.png" alt=""></div>
+  <svg style="position:absolute; inset:0; width:1080px; height:1920px; overflow:visible;" viewBox="0 0 1080 1920">
+    <defs><filter id="fGlow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="9" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      <filter id="fGlowRed" x="-50%" y="-50%" width="200%" height="200%"><feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#000" flood-opacity=".35"/></filter></defs>
+    <path class="draw" id="pathC" d="M 285 1060 C 300 800, 560 640, 696 786" fill="none" stroke="#E3243B" stroke-width="18" stroke-linecap="round" filter="url(#fGlowRed)"/>
+    <g transform="translate(696 786) rotate(47)"><polygon id="arrowC" points="34,0 -18,-26 -18,26" fill="#E3243B" filter="url(#fGlowRed)" opacity="0"/></g>
+  </svg>
+</div></div>
+
+<!-- ===== D 9.18–15.85  walnut desk: India map, 57% plate, red fill, NFHS card, chai slams down ===== -->
+<div id="sD" class="scene"><div class="cam" id="camD">
+  <img class="bg" src="assets/img/B6_walnut_desk.jpg" alt="">
+  <div class="pw" id="mapW" style="left:160px; top:560px; width:760px;">
+    <img src="assets/img/P4_india_map.png" alt="">
+    <img id="mapRed" src="assets/img/P4b_india_map_red.png" alt="" style="position:absolute; left:0; top:0; width:100%; clip-path:circle(0% at 42% 40%);">
+  </div>
+  <div class="plate" id="p57" style="left:610px; top:600px; transform-origin:50% 50%;">
+    <div class="tile"><div class="strip" id="s57a" data-layout-ignore></div></div>
+    <div class="tile"><div class="strip" id="s57b" data-layout-ignore></div></div>
+    <span class="unit">%</span>
+  </div>
+  <div id="card"><div id="pin"></div>
+    <div class="src">NFHS-5 · 2019–21</div>
+    <div class="hl">57.0% of women aged 15–49 in India are anaemic</div>
+    <div class="by">National Family Health Survey, Ministry of Health &amp; Family Welfare</div>
+  </div>
+  <div class="shadowOval" id="dustD" style="left:349px; top:830px; width:260px; height:260px; opacity:0; background:radial-gradient(closest-side, rgba(230,210,180,.7), rgba(230,210,180,0));"></div>
+  <div class="pw" id="glassD" style="left:349px; top:798px; width:260px;"><img src="assets/img/P2_chai_glass_top.png" alt=""></div>
+  <svg style="position:absolute; inset:0; width:1080px; height:1920px;" viewBox="0 0 1080 1920">
+    <circle class="draw" id="ringD" cx="479" cy="953" r="200" fill="none" stroke="#FD6272" stroke-width="12" stroke-linecap="round" transform="rotate(-90 479 953)"/>
+  </svg>
+</div></div>
+
+<!-- ===== F 15.62–17.96  inside the chai: tannin molecules ===== -->
+<div id="sF" class="scene"><div class="cam" id="camF">
+  <img class="bg" src="assets/img/B7_tea_macro.jpg" alt="">
+  <div class="glowBlob" id="fGlowF" style="left:140px; top:780px; width:800px; height:800px; background:radial-gradient(closest-side, rgba(113,250,253,.35), rgba(113,250,253,0));"></div>
+  <div class="bub" id="bu1" style="left:90px;  top:1500px; width:34px; height:34px;"></div>
+  <div class="bub" id="bu2" style="left:250px; top:1700px; width:22px; height:22px;"></div>
+  <div class="bub" id="bu3" style="left:410px; top:1580px; width:40px; height:40px;"></div>
+  <div class="bub" id="bu4" style="left:560px; top:1760px; width:26px; height:26px;"></div>
+  <div class="bub" id="bu5" style="left:700px; top:1540px; width:30px; height:30px;"></div>
+  <div class="bub" id="bu6" style="left:860px; top:1680px; width:44px; height:44px;"></div>
+  <div class="bub" id="bu7" style="left:960px; top:1480px; width:20px; height:20px;"></div>
+  <div class="bub" id="bu8" style="left:330px; top:1840px; width:28px; height:28px;"></div>
+  <div class="pw soft" id="tnF1" style="left:300px; top:760px; width:480px;"><img src="assets/img/P5_tannin_molecule.png" alt=""></div>
+  <div class="pw soft" id="tnF2" style="left:60px;  top:1200px; width:340px;"><img src="assets/img/P5_tannin_molecule.png" alt=""></div>
+  <div class="pw soft" id="tnF3" style="left:640px; top:1300px; width:320px;"><img src="assets/img/P5_tannin_molecule.png" alt=""></div>
+</div></div>
+
+<!-- ===== G 17.52–23.26  stomach: food + chai meet, tannin grabs iron, LOCK ===== -->
+<div id="sG" class="scene"><div class="cam" id="camG">
+  <img class="bg" src="assets/img/B8_stomach_cutaway.jpg" alt="">
+  <div class="glowBlob" id="poolG" style="left:470px; top:930px; width:560px; height:460px; background:radial-gradient(closest-side, rgba(255,170,60,.7), rgba(255,140,40,0));"></div>
+  <div class="pw" id="foodG"  style="left:0; top:0; width:230px;"><img src="assets/img/P1_thali.png" alt=""></div>
+  <div class="pw" id="chaiG"  style="left:0; top:0; width:170px;"><img src="assets/img/P2_chai_glass_top.png" alt=""></div>
+  <div id="irs" style="position:absolute; inset:0;">
+    <div class="pw soft" id="ir1" style="left:610px; top:1075px; width:96px;"><img src="assets/img/P6_iron_sphere.png" alt=""></div>
+    <div class="pw soft" id="ir2" style="left:745px; top:1010px; width:84px;"><img src="assets/img/P6_iron_sphere.png" alt=""></div>
+    <div class="pw soft" id="ir3" style="left:690px; top:1190px; width:90px;"><img src="assets/img/P6_iron_sphere.png" alt=""></div>
+    <div class="pw soft" id="ir4" style="left:820px; top:1140px; width:80px;"><img src="assets/img/P6_iron_sphere.png" alt=""></div>
+  </div>
+  <div class="pw soft" id="tg1" style="left:540px; top:1000px; width:150px;"><img src="assets/img/P5_tannin_molecule.png" alt=""></div>
+  <div class="pw soft" id="tg2" style="left:800px; top:1060px; width:140px;"><img src="assets/img/P5_tannin_molecule.png" alt=""></div>
+  <div class="pw soft" id="tg3" style="left:650px; top:1250px; width:140px;"><img src="assets/img/P5_tannin_molecule.png" alt=""></div>
+  <div class="pw" id="lockW" style="left:680px; top:1000px; width:150px;">
+    <img id="lockOpen" src="assets/img/P7_padlock_open.png" alt="">
+    <img id="lockClosed" src="assets/img/P7b_padlock_closed.png" alt="" style="position:absolute; left:0; top:0; width:100%; opacity:0;">
+  </div>
+</div></div>
+
+<!-- ===== J 22.96–30.22  mustard: result — 10 iron tablets, 6 go grey, healthy food can't fix it ===== -->
+<div id="sJ" class="scene"><div class="cam" id="camJ">
+  <img class="bg" src="assets/img/B11_mustard_paper.jpg" alt=""><div class="ruled"></div>
+  <div class="plate" id="p60" style="left:330px; top:640px;">
+    <div class="tile"><div class="fix">−</div></div>
+    <div class="tile"><div class="strip" id="s60a" data-layout-ignore></div></div>
+    <div class="tile"><div class="strip" id="s60b" data-layout-ignore></div></div>
+    <span class="unit">%</span>
+  </div>
+  <div class="pw" id="tray" style="left:110px; top:940px; width:860px;"><img src="assets/img/P8_wood_tray.png" alt=""></div>
+  <div class="pw" id="tb0" style="left:162px; top:997px; width:118px;"><img src="assets/img/P9_iron_tablet.png" alt=""></div>
+  <div class="pw" id="tb1" style="left:323px; top:997px; width:118px;"><img src="assets/img/P9_iron_tablet.png" alt=""></div>
+  <div class="pw" id="tb2" style="left:485px; top:997px; width:118px;"><img src="assets/img/P9_iron_tablet.png" alt=""></div>
+  <div class="pw" id="tb3" style="left:646px; top:997px; width:118px;"><img src="assets/img/P9_iron_tablet.png" alt=""></div>
+  <div class="pw" id="tb4" style="left:805px; top:997px; width:118px;"><img src="assets/img/P9_iron_tablet.png" alt=""></div>
+  <div class="pw" id="tb5" style="left:162px; top:1148px; width:118px;"><img src="assets/img/P9_iron_tablet.png" alt=""></div>
+  <div class="pw" id="tb6" style="left:323px; top:1148px; width:118px;"><img src="assets/img/P9_iron_tablet.png" alt=""></div>
+  <div class="pw" id="tb7" style="left:485px; top:1148px; width:118px;"><img src="assets/img/P9_iron_tablet.png" alt=""></div>
+  <div class="pw" id="tb8" style="left:646px; top:1148px; width:118px;"><img src="assets/img/P9_iron_tablet.png" alt=""></div>
+  <div class="pw" id="tb9" style="left:805px; top:1148px; width:118px;"><img src="assets/img/P9_iron_tablet.png" alt=""></div>
+  <div class="pw" id="bowl1" style="left:150px; top:1390px; width:330px;"><img src="assets/img/P10_palak.png" alt=""></div>
+  <div class="pw" id="bowl2" style="left:600px; top:1390px; width:330px;"><img src="assets/img/P11_chana.png" alt=""></div>
+</div></div>
+
+<!-- ===== L 29.92–31.96  teal: chai mat chhodo — hand rises, green tick ===== -->
+<div id="sL" class="scene"><div class="cam" id="camL">
+  <img class="bg" src="assets/img/B1_teal_cloth.jpg" alt="">
+  <div class="pw" id="handL" style="left:120px; top:840px; width:960px;"><img src="assets/img/P3_hand_chai.png" alt=""></div>
+  <svg style="position:absolute; left:400px; top:720px; width:260px; height:220px; overflow:visible;" viewBox="0 0 220 200">
+    <path class="draw" id="tickL" d="M 20 110 L 80 168 L 200 30" fill="none" stroke="#3BE07A" stroke-width="34" stroke-linecap="round" stroke-linejoin="round" filter="url(#fGlow)"/>
+  </svg>
+</div></div>
+
+<!-- ===== M 31.52–35.62  emerald tiles: brass clock, 1-hour wedge ===== -->
+<div id="sM" class="scene"><div class="cam" id="camM">
+  <img class="bg" src="assets/img/B10_emerald_tiles.jpg" alt="">
+  <div class="pw" id="clockW" style="left:160px; top:700px; width:760px;">
+    <img src="assets/img/P13_brass_clock.png" alt="">
+    <svg style="position:absolute; left:0; top:0; width:760px; height:799px;" viewBox="0 0 760 799">
+      <circle id="wedge" cx="375" cy="383" r="125" fill="none" stroke="rgba(252,190,81,.62)" stroke-width="250" stroke-dasharray="785.4" stroke-dashoffset="785.4" transform="rotate(-90 375 383)"/>
+      <line id="hourH" x1="375" y1="383" x2="375" y2="228" stroke="#1d1510" stroke-width="16" stroke-linecap="round"/>
+      <line id="minH"  x1="375" y1="383" x2="375" y2="150" stroke="#1d1510" stroke-width="10" stroke-linecap="round"/>
+      <circle cx="375" cy="383" r="16" fill="#B8862E"/>
+    </svg>
+  </div>
+</div></div>
+
+<!-- ===== N 35.32–39.50  mustard: khana alag, chai alag, poora fayda ===== -->
+<div id="sN" class="scene"><div class="cam" id="camN">
+  <img class="bg" src="assets/img/B11_mustard_paper.jpg" alt=""><div class="ruled"></div>
+  <div class="pw" id="thaliN" style="left:40px; top:840px; width:430px;"><img src="assets/img/P1_thali.png" alt=""></div>
+  <div class="pw" id="glassN" style="left:785px; top:900px; width:250px;"><img src="assets/img/P2_chai_glass_top.png" alt=""></div>
+  <div id="divN"></div>
+  <div id="pillN">1 GHANTA</div>
+  <div class="pw" id="tr0" style="left:155px; top:1540px; width:72px;"><img src="assets/img/P9_iron_tablet.png" alt=""></div>
+  <div class="pw" id="tr1" style="left:235px; top:1540px; width:72px;"><img src="assets/img/P9_iron_tablet.png" alt=""></div>
+  <div class="pw" id="tr2" style="left:315px; top:1540px; width:72px;"><img src="assets/img/P9_iron_tablet.png" alt=""></div>
+  <div class="pw" id="tr3" style="left:395px; top:1540px; width:72px;"><img src="assets/img/P9_iron_tablet.png" alt=""></div>
+  <div class="pw" id="tr4" style="left:475px; top:1540px; width:72px;"><img src="assets/img/P9_iron_tablet.png" alt=""></div>
+  <div class="pw" id="tr5" style="left:555px; top:1540px; width:72px;"><img src="assets/img/P9_iron_tablet.png" alt=""></div>
+  <div class="pw" id="tr6" style="left:635px; top:1540px; width:72px;"><img src="assets/img/P9_iron_tablet.png" alt=""></div>
+  <div class="pw" id="tr7" style="left:715px; top:1540px; width:72px;"><img src="assets/img/P9_iron_tablet.png" alt=""></div>
+  <div class="pw" id="tr8" style="left:795px; top:1540px; width:72px;"><img src="assets/img/P9_iron_tablet.png" alt=""></div>
+  <div class="pw" id="tr9" style="left:875px; top:1540px; width:72px;"><img src="assets/img/P9_iron_tablet.png" alt=""></div>
+  <svg style="position:absolute; left:195px; top:1305px; width:150px; height:136px; overflow:visible;" viewBox="0 0 220 200">
+    <path class="draw" id="tickN1" d="M 20 110 L 80 168 L 200 30" fill="none" stroke="#3BE07A" stroke-width="30" stroke-linecap="round" stroke-linejoin="round" filter="url(#fGlow)"/>
+  </svg>
+  <svg style="position:absolute; left:835px; top:1225px; width:150px; height:136px; overflow:visible;" viewBox="0 0 220 200">
+    <path class="draw" id="tickN2" d="M 20 110 L 80 168 L 200 30" fill="none" stroke="#3BE07A" stroke-width="30" stroke-linecap="round" stroke-linejoin="round" filter="url(#fGlow)"/>
+  </svg>
+</div></div>
+
+<div id="vig" data-layout-allow-occlusion></div>
+
+<!-- ===== TITLES (skill §4) ===== -->
+<div id="titles">
+  <div class="title" id="T1"><div class="l1">KHANE KE BAAD</div><div class="l2-glow g-gold"><div class="l2-mask"><div class="l2">GARAM CHAI?</div></div></div></div>
+  <div class="title" id="T2"><div class="l1">INDIA MEIN HAR GHAR KI</div><div class="l2-glow g-peach"><div class="l2-mask"><div class="l2">AADAT</div></div></div></div>
+  <div class="title" id="T3"><div class="l1">PAR KYA AAPKO</div><div class="l2-glow g-gold"><div class="l2-mask"><div class="l2">PATA HAI?</div></div></div></div>
+  <div class="title" id="T4"><div class="l1">AAPKE PET MEIN</div><div class="l2-glow g-pink"><div class="l2-mask"><div class="l2" style="font-size:128px">ROZ KYA KARTI?</div></div></div></div>
+  <div class="title" id="T5"><div class="l1">INDIA MEIN</div><div class="l2-glow g-pink"><div class="l2-mask"><div class="l2" style="font-size:132px">57% IRON KAMI</div></div></div></div>
+  <div class="title" id="T6"><div class="l1">AUR EK BADA REASON</div><div class="l2-glow g-peach"><div class="l2-mask"><div class="l2">YAHI AADAT</div></div></div></div>
+  <div class="title" id="T7"><div class="l1">CHAI MEIN HOTA HAI</div><div class="l2-glow g-cyan"><div class="l2-mask"><div class="l2">TANNIN</div></div></div></div>
+  <div class="title" id="T8"><div class="l1">KHANA + CHAI</div><div class="l2-glow g-gold"><div class="l2-mask"><div class="l2">SAATH MILTE HI</div></div></div></div>
+  <div class="title" id="T9"><div class="l1">TANNIN IRON KO</div><div class="l2-glow g-cyan"><div class="l2-mask"><div class="l2">PAKAD LETA HAI</div></div></div></div>
+  <div class="title" id="T10"><div class="l1">TANNIN IRON KO</div><div class="l2-glow g-pink"><div class="l2-mask"><div class="l2">LOCK KAR DETA</div></div></div></div>
+  <div class="title" id="T11"><div class="l1">ISKA</div><div class="l2-glow g-gold"><div class="l2-mask"><div class="l2">RESULT?</div></div></div></div>
+  <div class="title" id="T12"><div class="l1">AAPKI BODY</div><div class="l2-glow g-pink"><div class="l2-mask"><div class="l2">60% TAK KAM</div></div></div></div>
+  <div class="title" id="T13"><div class="l1">KHANA KITNA BHI</div><div class="l2-glow g-gold"><div class="l2-mask"><div class="l2">HEALTHY HO</div></div></div></div>
+  <div class="title" id="T14"><div class="l1">TO CHAI CHHODNI</div><div class="l2-glow g-lime"><div class="l2-mask"><div class="l2">NAHI HAI</div></div></div></div>
+  <div class="title" id="T15"><div class="l1">BAS EK RULE</div><div class="l2-glow g-gold"><div class="l2-mask"><div class="l2" style="font-size:130px">1 GHANTE KA GAP</div></div></div></div>
+  <div class="title" id="T16"><div class="l1">KHANA ALAG</div><div class="l2-glow g-lime"><div class="l2-mask"><div class="l2">CHAI ALAG</div></div></div></div>
+  <div class="title" id="T17"><div class="l1">TABHI DONO KA</div><div class="l2-glow g-lime"><div class="l2-mask"><div class="l2">POORA FAYDA</div></div></div></div>
+</div>
+
+<!-- ===== NOTEBOOK OVERLAY (crease 62.5%, 7 holes, grain) ===== -->
+<div id="overlay" data-layout-allow-occlusion>
+  <div class="crease"></div>
+  <div class="hole" style="top:288px"></div><div class="hole" style="top:508px"></div><div class="hole" style="top:728px"></div>
+  <div class="hole" style="top:948px"></div><div class="hole" style="top:1168px"></div><div class="hole" style="top:1388px"></div>
+  <div class="hole" style="top:1608px"></div>
+  <div class="grain"></div>
+</div>
+
+<!-- ===== AUDIO ===== -->
+<audio id="vo"  src="assets/audio/voiceover.mp3"     data-start="0"     data-duration="39.24" data-volume="1.0"></audio>
+<!-- music bed (bgm_v4_mix.mp3, levels baked in): 0–29.4 s "50 Invictus - Dark Epic (ES)" fading out 28.0→29.4 s;
+     from 29.0 s "Circle (ES)" (B Chill Lo-fi Happy, from its beat at 8.42 s), low-pass 5500 Hz, ducked under the voice, fade-out 38.0→39.5 s -->
+<audio id="bgm" src="assets/audio/bgm_v4_mix.mp3" data-start="0"     data-duration="39.5"  data-volume="1.0"></audio>
+<audio id="x01" src="assets/audio/whoosh_soft.mp3"   data-start="0.03"  data-duration="1.2" data-volume="0.40"></audio>
+<audio id="x02" src="assets/audio/swoosh_light.mp3"  data-start="1.50"  data-duration="0.6" data-volume="0.35"></audio>
+<audio id="x03" src="assets/audio/boom_low.mp3"      data-start="1.93"  data-duration="1.0" data-volume="0.38"></audio>
+<audio id="x04" src="assets/audio/whoosh_soft.mp3"   data-start="2.76"  data-duration="0.9" data-volume="0.42"></audio>
+<audio id="x05" src="assets/audio/metal_click.mp3"   data-start="3.40"  data-duration="0.4" data-volume="0.30"></audio>
+<audio id="x06" src="assets/audio/metal_click.mp3"   data-start="3.88"  data-duration="0.4" data-volume="0.30"></audio>
+<audio id="x07" src="assets/audio/whoosh_riser.mp3"  data-start="4.80"  data-duration="1.0" data-volume="0.40"></audio>
+<audio id="x08" src="assets/audio/swoosh_light.mp3"  data-start="5.05"  data-duration="0.8" data-volume="0.35"></audio>
+<audio id="x09" src="assets/audio/metal_click.mp3"   data-start="5.92"  data-duration="0.4" data-volume="0.40"></audio>
+<audio id="x10" src="assets/audio/boom_low.mp3"      data-start="6.90"  data-duration="1.0" data-volume="0.42"></audio>
+<audio id="x11" src="assets/audio/metal_click.mp3"   data-start="7.50"  data-duration="0.4" data-volume="0.40"></audio>
+<audio id="x12" src="assets/audio/whoosh_soft.mp3"   data-start="7.72"  data-duration="0.9" data-volume="0.35"></audio>
+<audio id="x13" src="assets/audio/whoosh_soft.mp3"   data-start="9.15"  data-duration="0.9" data-volume="0.42"></audio>
+<audio id="x14" src="assets/audio/swoosh_light.mp3"  data-start="9.32"  data-duration="0.8" data-volume="0.38"></audio>
+<audio id="x15" src="assets/audio/metal_click.mp3"   data-start="9.80"  data-duration="0.3" data-volume="0.35"></audio>
+<audio id="x16" src="assets/audio/metal_click.mp3"   data-start="10.05" data-duration="0.3" data-volume="0.35"></audio>
+<audio id="x17" src="assets/audio/metal_click.mp3"   data-start="10.30" data-duration="0.3" data-volume="0.35"></audio>
+<audio id="x18" src="assets/audio/metal_click.mp3"   data-start="10.55" data-duration="0.3" data-volume="0.40"></audio>
+<audio id="x19" src="assets/audio/boom_low.mp3"      data-start="10.90" data-duration="1.2" data-volume="0.42"></audio>
+<audio id="x20" src="assets/audio/swoosh_light.mp3"  data-start="12.25" data-duration="0.8" data-volume="0.38"></audio>
+<audio id="x21" src="assets/audio/metal_click.mp3"   data-start="12.72" data-duration="0.4" data-volume="0.40"></audio>
+<audio id="x22" src="assets/audio/boom_impact.mp3"   data-start="14.08" data-duration="1.2" data-volume="0.45"></audio>
+<audio id="x23" src="assets/audio/whoosh_riser.mp3"  data-start="15.15" data-duration="1.0" data-volume="0.42"></audio>
+<audio id="x24" src="assets/audio/riser_clean.mp3"   data-media-start="1.3" data-start="16.60" data-duration="0.9" data-volume="0.30"></audio>
+<audio id="x25" src="assets/audio/whoosh_soft.mp3"   data-start="17.48" data-duration="0.9" data-volume="0.40"></audio>
+<audio id="x26" src="assets/audio/swoosh_light.mp3"  data-start="17.62" data-duration="0.8" data-volume="0.38"></audio>
+<audio id="x55" src="assets/audio/swoosh_light.mp3"  data-start="18.44" data-duration="0.8" data-volume="0.38"></audio>
+<audio id="x56" src="assets/audio/boom_low.mp3"      data-start="19.20" data-duration="0.9" data-volume="0.30"></audio>
+<audio id="x57" src="assets/audio/metal_click.mp3"   data-start="38.00" data-duration="0.4" data-volume="0.35"></audio>
+<audio id="x27" src="assets/audio/riser_clean.mp3"   data-media-start="1.3" data-start="20.20" data-duration="1.3" data-volume="0.32"></audio>
+<audio id="x28" src="assets/audio/metal_click.mp3"   data-start="21.86" data-duration="0.4" data-volume="0.50"></audio>
+<audio id="x29" src="assets/audio/boom_impact.mp3"   data-start="21.88" data-duration="1.2" data-volume="0.45"></audio>
+<audio id="x30" src="assets/audio/whoosh_soft.mp3"   data-start="22.93" data-duration="0.9" data-volume="0.42"></audio>
+<audio id="x31" src="assets/audio/swoosh_light.mp3"  data-start="23.12" data-duration="0.7" data-volume="0.35"></audio>
+<audio id="x32" src="assets/audio/metal_click.mp3"   data-start="24.52" data-duration="0.3" data-volume="0.28"></audio>
+<audio id="x33" src="assets/audio/metal_click.mp3"   data-start="24.75" data-duration="0.3" data-volume="0.28"></audio>
+<audio id="x34" src="assets/audio/metal_click.mp3"   data-start="24.97" data-duration="0.3" data-volume="0.28"></audio>
+<audio id="x35" src="assets/audio/metal_click.mp3"   data-start="25.20" data-duration="0.3" data-volume="0.30"></audio>
+<audio id="x36" src="assets/audio/boom_low.mp3"      data-start="25.10" data-duration="1.2" data-volume="0.40"></audio>
+<audio id="x37" src="assets/audio/metal_click.mp3"   data-start="25.55" data-duration="0.3" data-volume="0.35"></audio>
+<audio id="x38" src="assets/audio/metal_click.mp3"   data-start="25.85" data-duration="0.3" data-volume="0.38"></audio>
+<audio id="x39" src="assets/audio/boom_low.mp3"      data-start="28.38" data-duration="0.8" data-volume="0.30"></audio>
+<audio id="x40" src="assets/audio/boom_low.mp3"      data-start="28.66" data-duration="0.8" data-volume="0.30"></audio>
+<audio id="x41" src="assets/audio/whoosh_soft.mp3"   data-start="29.88" data-duration="0.9" data-volume="0.42"></audio>
+<audio id="x42" src="assets/audio/ding_bell.mp3"     data-start="30.86" data-duration="1.2" data-volume="0.35"></audio>
+<audio id="x43" src="assets/audio/whoosh_riser.mp3"  data-start="31.45" data-duration="0.9" data-volume="0.38"></audio>
+<audio id="x44" src="assets/audio/metal_click.mp3"   data-start="33.20" data-duration="0.3" data-volume="0.30"></audio>
+<audio id="x45" src="assets/audio/metal_click.mp3"   data-start="33.55" data-duration="0.3" data-volume="0.30"></audio>
+<audio id="x46" src="assets/audio/metal_click.mp3"   data-start="33.90" data-duration="0.3" data-volume="0.30"></audio>
+<audio id="x47" src="assets/audio/metal_click.mp3"   data-start="34.25" data-duration="0.3" data-volume="0.30"></audio>
+<audio id="x48" src="assets/audio/metal_click.mp3"   data-start="34.60" data-duration="0.3" data-volume="0.30"></audio>
+<audio id="x49" src="assets/audio/ding_bell.mp3"     data-start="34.90" data-duration="1.4" data-volume="0.40"></audio>
+<audio id="x50" src="assets/audio/whoosh_soft.mp3"   data-start="35.28" data-duration="0.9" data-volume="0.42"></audio>
+<audio id="x51" src="assets/audio/swoosh_light.mp3"  data-start="36.38" data-duration="0.8" data-volume="0.38"></audio>
+<audio id="x52" src="assets/audio/metal_click.mp3"   data-start="36.82" data-duration="0.4" data-volume="0.40"></audio>
+<audio id="x53" src="assets/audio/riser_clean.mp3"   data-media-start="1.3" data-start="37.30" data-duration="1.0" data-volume="0.32"></audio>
+<audio id="x54" src="assets/audio/ding_bell.mp3"     data-start="38.30" data-duration="1.2" data-volume="0.40"></audio>
+
+</div>
+
+<script>
+window.__timelines = window.__timelines || {};
+
+/* fill counter strips (0-9 twice) and prime draw-on strokes */
+document.querySelectorAll(".strip").forEach(s => { for (let i = 0; i < 20; i++) { const d = document.createElement("div"); d.textContent = i % 10; s.appendChild(d); } });
+document.querySelectorAll(".draw").forEach(p => { const L = p.getTotalLength(); p.style.strokeDasharray = L; p.style.strokeDashoffset = L; });
+
+const tl = gsap.timeline({ paused: true });
+const ROW = 120;
+
+/* ---------- helpers ---------- */
+function show(sel, t0, t1) { tl.set(sel, { opacity: 1 }, t0); tl.set(sel, { opacity: 0 }, t1); }
+function whipIn(sel, t)  { tl.fromTo(sel, { x: 1080, filter: "blur(16px)" }, { x: 0, filter: "blur(0px)", duration: 0.28, ease: "power3.out" }, t); }
+function whipOut(sel, t) { tl.to(sel, { x: -1080, filter: "blur(16px)", duration: 0.28, ease: "power3.in" }, t); }
+function tiltIn(sel, t, from) { tl.fromTo(sel, { y: from }, { y: 0, duration: 0.45, ease: "power2.inOut" }, t); }
+function tiltOut(sel, t, to) { tl.to(sel, { y: to, duration: 0.45, ease: "power2.inOut" }, t); }
+function drop(sel, t, rot, dur) {            /* drop & settle (skill §3b) */
+  dur = dur || 0.45;
+  tl.fromTo(sel, { y: -2300, rotation: rot }, { y: 0, rotation: 0, duration: dur, ease: "power4.in" }, t);
+  tl.fromTo(sel + " img", { filter: "blur(6px)" }, { filter: "blur(0px)", duration: dur, ease: "power4.in" }, t);
+  tl.fromTo(sel, { scaleY: 0.86, scaleX: 1.06 }, { scaleY: 1, scaleX: 1, duration: 0.16, ease: "power2.out" }, t + dur);
+}
+function roll(sel, idx, t, dur) {             /* split-flap digit roll with motion blur */
+  tl.set(sel, { filter: "blur(4px)" }, t);
+  tl.to(sel, { y: -idx * ROW, duration: dur, ease: "power3.out" }, t);
+  tl.to(sel, { filter: "blur(0px)", duration: 0.12 }, t + dur - 0.12);
+}
+function draw(sel, t, dur, ease) { tl.fromTo(sel, { opacity: 0 }, { opacity: 1, duration: 0.01 }, t); tl.to(sel, { strokeDashoffset: 0, duration: dur, ease: ease || "power2.inOut" }, t); }
+function title(id, tIn, tL2, tOut, instant) {
+  tl.set(id, { opacity: 1 }, tIn);
+  if (!instant) tl.from(id + " .l1", { opacity: 0, y: 8, duration: 0.2, ease: "power2.out" }, tIn);
+  tl.fromTo(id + " .l2", { yPercent: 140, opacity: 0, filter: "blur(8px)" }, { yPercent: 0, opacity: 1, filter: "blur(0px)", duration: 0.16, ease: "power3.out" }, tL2);
+  if (tOut) tl.to(id, { opacity: 0, duration: 0.12 }, tOut);
+}
+
+/* ===== A 0–3.10 ===== */
+show("#sA", 0, 3.10);
+tl.set("#camA", { transformOrigin: "840px 1060px" }, 0);
+tl.fromTo("#camA", { scale: 1 }, { scale: 1.04, duration: 1.6, ease: "none" }, 0);
+tl.fromTo("#thaliA", { x: -560, y: 420, rotation: -16 }, { x: 0, y: 0, rotation: 0, duration: 0.6, ease: "power3.out" }, 0.03);
+drop("#glassA", 1.48, -20);
+tl.to("#camA", { scale: 1.17, duration: 0.45, ease: "power3.out" }, 1.95);
+tl.to("#camA", { scale: 1.2, duration: 0.45, ease: "none" }, 2.40);
+tl.fromTo("#st1", { opacity: 0, y: 40 }, { opacity: 0.7, y: -50, duration: 0.85, ease: "sine.out" }, 1.95);
+tl.fromTo("#st2", { opacity: 0, y: 50 }, { opacity: 0.6, y: -45, duration: 0.85, ease: "sine.out" }, 2.05);
+whipOut("#sA", 2.80);
+
+/* ===== B 2.80–5.36 ===== */
+show("#sB", 2.80, 5.36);
+whipIn("#sB", 2.80);
+tl.fromTo("#bB2", { scale: 1.1 }, { scale: 1.0, duration: 0.7, ease: "power2.out" }, 2.80);
+tl.set("#bB3", { opacity: 1 }, 3.40); tl.fromTo("#bB3", { scale: 1.1 }, { scale: 1.0, duration: 0.6, ease: "power2.out" }, 3.40);
+tl.set("#bB4", { opacity: 1 }, 3.88); tl.fromTo("#bB4", { scale: 1.1 }, { scale: 1.0, duration: 1.4, ease: "power2.out" }, 3.88);
+tl.fromTo("#handB", { y: 160, rotation: 4 }, { y: 0, rotation: 0, duration: 0.5, ease: "power3.out" }, 2.85);
+tl.to("#handB", { y: -16, rotation: -1.5, duration: 1.5, ease: "sine.inOut" }, 3.35);
+tiltOut("#sB", 4.90, 1920);
+
+/* ===== C 4.90–9.47 ===== */
+show("#sC", 4.90, 9.47);
+tiltIn("#sC", 4.90, -1920);
+tl.set("#camC", { transformOrigin: "740px 1080px" }, 4.90);
+tl.fromTo("#camC", { scale: 1 }, { scale: 1.04, duration: 3.25, ease: "none" }, 4.90);
+tl.to("#camC", { scale: 1.32, duration: 0.45, ease: "expo.out" }, 8.15);
+tl.to("#camC", { scale: 1.36, duration: 0.6, ease: "none" }, 8.60);
+draw("#qc", 5.05, 0.7); draw("#qg", 5.15, 0.6);
+tl.fromTo("#qdot", { y: -140, opacity: 0 }, { y: 0, opacity: 1, duration: 0.32, ease: "bounce.out" }, 5.75);
+tl.to("#qsvg", { x: -210, y: -70, scale: 0.62, duration: 0.4, ease: "power3.inOut" }, 6.40);
+tl.to("#qsvg", { opacity: 0, scale: 0.3, duration: 0.2, ease: "power2.in" }, 7.12);
+drop("#stoC", 6.45, 12, 0.45);
+drop("#glassC", 7.08, -15, 0.42);
+draw("#pathC", 7.72, 0.7);
+tl.fromTo("#arrowC", { opacity: 0, scale: 0.2, transformOrigin: "50% 50%" }, { opacity: 1, scale: 1, duration: 0.18, ease: "back.out(3)" }, 8.40);
+tl.to("#stoGlowC", { opacity: 0.85, duration: 0.5, ease: "power2.out" }, 8.45);
+whipOut("#sC", 9.18);
+
+/* ===== D 9.18–15.85 ===== */
+show("#sD", 9.18, 15.85);
+whipIn("#sD", 9.18);
+tl.set("#camD", { transformOrigin: "479px 953px" }, 9.18);
+tl.fromTo("#camD", { scale: 1 }, { scale: 1.06, duration: 4.7, ease: "none" }, 9.46);
+tl.to("#camD", { scale: 1.36, duration: 0.55, ease: "expo.out" }, 14.20);
+tl.to("#camD", { scale: 7, duration: 0.48, ease: "power3.in" }, 15.32);
+tl.fromTo("#mapW", { y: 900, rotation: -10 }, { y: 0, rotation: -3, duration: 0.6, ease: "expo.out" }, 9.30);
+tl.fromTo("#p57", { y: -70, opacity: 0, rotation: -9 }, { y: 0, opacity: 1, rotation: -3, duration: 0.3, ease: "back.out(2)" }, 9.55);
+roll("#s57a", 15, 9.69, 0.85); roll("#s57b", 17, 9.76, 0.9);
+tl.fromTo("#mapRed", { clipPath: "circle(0% at 42% 40%)" }, { clipPath: "circle(150% at 42% 40%)", duration: 0.8, ease: "power2.inOut" }, 10.90);
+tl.fromTo("#card", { y: 1000, rotation: -9, opacity: 0 }, { y: 0, rotation: -3, opacity: 1, duration: 0.5, ease: "expo.out" }, 12.25);
+tl.fromTo("#pin", { scale: 2.2, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.15, ease: "power3.out" }, 12.70);
+drop("#glassD", 13.68, 25, 0.4);
+tl.fromTo("#dustD", { scale: 0.3, opacity: 0.7 }, { scale: 1.8, opacity: 0, duration: 0.5, ease: "power2.out" }, 14.08);
+draw("#ringD", 14.35, 0.4);
+
+/* ===== F 15.62–17.96 ===== */
+show("#sF", 15.62, 17.96);
+tl.fromTo("#sF", { opacity: 0 }, { opacity: 1, duration: 0.18, ease: "none" }, 15.62);
+tl.set("#camF", { transformOrigin: "540px 1100px" }, 15.62);
+tl.fromTo("#camF", { scale: 1.6 }, { scale: 1.0, duration: 0.63, ease: "expo.out" }, 15.62);
+tl.to("#camF", { scale: 1.05, duration: 1.65, ease: "none" }, 16.25);
+tl.fromTo("#tnF1", { x: 760, rotation: -50 }, { x: 0, rotation: 0, duration: 0.9, ease: "power3.out" }, 15.95);
+tl.fromTo("#tnF2", { x: -700, rotation: 40 }, { x: 0, rotation: 0, duration: 0.9, ease: "power3.out" }, 16.12);
+tl.fromTo("#tnF3", { x: 700, rotation: 35 }, { x: 0, rotation: 0, duration: 0.9, ease: "power3.out" }, 16.30);
+tl.to(["#tnF1", "#tnF2", "#tnF3"], { y: -24, rotation: 8, duration: 0.9, ease: "sine.inOut" }, 17.00);
+tl.to("#fGlowF", { opacity: 1, duration: 0.3, ease: "power2.out" }, 16.80);
+["#bu1","#bu2","#bu3","#bu4","#bu5","#bu6","#bu7","#bu8"].forEach((b, i) =>
+  tl.fromTo(b, { y: 0, opacity: 0 }, { y: -760 - (i % 3) * 120, opacity: 0.85, duration: 2.2, ease: "none" }, 15.70 + (i % 4) * 0.08));
+tiltOut("#sF", 17.52, -1920);
+
+/* ===== G 17.52–23.26 ===== */
+show("#sG", 17.52, 23.26);
+tiltIn("#sG", 17.52, 1920);
+tl.set("#camG", { transformOrigin: "740px 1150px" }, 17.52);
+tl.fromTo("#camG", { scale: 1 }, { scale: 1.04, duration: 2.25, ease: "none" }, 17.95);
+tl.to("#camG", { scale: 1.5, duration: 0.48, ease: "expo.out" }, 20.22);
+tl.to("#camG", { keyframes: [{ x: 12, duration: 0.05 }, { x: -9, duration: 0.05 }, { x: 5, duration: 0.05 }, { x: 0, duration: 0.05 }] }, 21.86);
+/* note #3: the real thali and chai fall from the top, through the food pipe, into the stomach */
+tl.set(["#foodG", "#chaiG"], { xPercent: -50, yPercent: -50 }, 0);
+tl.set("#foodG", { x: 444, y: -300, scale: 1, rotation: -20 }, 17.52);
+tl.to("#foodG", { keyframes: [
+  { x: 444, y: 470, rotation: 0, duration: 0.38, ease: "power2.in" },
+  { x: 470, y: 690, scale: 0.62, duration: 0.25, ease: "none" },
+  { x: 560, y: 860, scale: 0.55, duration: 0.22, ease: "none" },
+  { x: 640, y: 1140, scale: 0.9, rotation: 10, duration: 0.3, ease: "power2.out" }] }, 17.62);
+tl.set("#chaiG", { x: 444, y: -300, scale: 1, rotation: 25 }, 17.52);
+tl.to("#chaiG", { keyframes: [
+  { x: 444, y: 470, rotation: 0, duration: 0.36, ease: "power2.in" },
+  { x: 470, y: 690, scale: 0.68, duration: 0.24, ease: "none" },
+  { x: 560, y: 860, scale: 0.6, duration: 0.2, ease: "none" },
+  { x: 830, y: 1110, scale: 0.95, rotation: -8, duration: 0.3, ease: "power2.out" }] }, 18.44);
+tl.to("#foodG", { x: 665, rotation: 0, duration: 0.35, ease: "power2.inOut" }, 19.20);   /* "saath milte hain": they meet */
+tl.to("#chaiG", { x: 845, rotation: 0, duration: 0.35, ease: "power2.inOut" }, 19.20);
+tl.to(["#foodG", "#chaiG"], { opacity: 0, scale: 0.3, duration: 0.3, ease: "power2.in" }, 20.15);  /* make room for iron + tannin */
+tl.to("#poolG", { opacity: 0.8, duration: 0.5, ease: "power2.out" }, 19.25);
+["#ir1","#ir2","#ir3","#ir4"].forEach((s, i) =>
+  tl.fromTo(s, { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.3, ease: "back.out(2.2)" }, 20.40 + i * 0.07));
+tl.fromTo("#tg1", { x: -640, y: -160, rotation: -70, opacity: 0 }, { x: 0, y: 0, rotation: 0, opacity: 1, duration: 0.7, ease: "power3.out" }, 20.80);
+tl.fromTo("#tg2", { x: 560, y: -120, rotation: 60, opacity: 0 },  { x: 0, y: 0, rotation: 0, opacity: 1, duration: 0.7, ease: "power3.out" }, 20.92);
+tl.fromTo("#tg3", { x: -480, y: 300, rotation: 50, opacity: 0 },  { x: 0, y: 0, rotation: 0, opacity: 1, duration: 0.7, ease: "power3.out" }, 21.04);
+tl.fromTo("#lockW", { y: -1900, opacity: 0 }, { y: 0, opacity: 1, duration: 0.3, ease: "power4.in" }, 21.56);
+tl.set("#lockOpen", { opacity: 0 }, 21.88); tl.set("#lockClosed", { opacity: 1 }, 21.88);
+tl.fromTo("#lockW", { scale: 1.15 }, { scale: 1, duration: 0.18, ease: "power2.out" }, 21.88);
+tl.fromTo("#irs", { filter: "grayscale(0) brightness(1)" }, { filter: "grayscale(0.6) brightness(0.45)", duration: 0.4, ease: "power2.out" }, 21.92);
+whipOut("#sG", 22.96);
+
+/* ===== J 22.96–30.22 ===== */
+show("#sJ", 22.96, 30.22);
+whipIn("#sJ", 22.96);
+tl.set("#camJ", { transformOrigin: "540px 1130px" }, 22.96);
+tl.fromTo("#camJ", { scale: 1 }, { scale: 1.03, duration: 2.7, ease: "none" }, 23.24);
+tl.to("#camJ", { scale: 1.16, duration: 0.5, ease: "expo.out" }, 25.80);           /* punch-in on "iron absorb" */
+tl.to("#camJ", { scale: 1.19, duration: 1.5, ease: "none" }, 26.30);
+[1, 4, 6, 9].forEach((i, k) =>                                                        /* the 4 that still absorb pulse */
+  tl.fromTo("#tb" + i, { scale: 1 }, { scale: 1.14, duration: 0.22, ease: "power2.out", yoyo: true, repeat: 1 }, 26.35 + k * 0.12));
+tl.to("#camJ", { scale: 1.0, duration: 0.5, ease: "power2.inOut" }, 27.85);
+tl.to("#camJ", { scale: 1.03, duration: 1.6, ease: "none" }, 28.35);
+tl.fromTo("#tray", { y: 900, rotation: 6 }, { y: 0, rotation: 0, duration: 0.5, ease: "expo.out" }, 23.10);
+for (let i = 0; i < 10; i++) drop("#tb" + i, 24.10 + i * 0.075, (i % 2 ? 1 : -1) * (20 + i * 3), 0.42);
+[0, 2, 3, 5, 7, 8].forEach((i, k) =>
+  tl.fromTo("#tb" + i + " img", { filter: "grayscale(0) brightness(1)" }, { filter: "grayscale(1) brightness(0.55)", duration: 0.3, ease: "power2.out" }, 25.05 + k * 0.08));
+[0, 2, 3, 5, 7, 8].forEach((i, k) =>
+  tl.to("#tb" + i, { scale: 0.8, duration: 0.3, ease: "power2.out" }, 25.05 + k * 0.08));
+tl.fromTo("#p60", { y: -70, opacity: 0, rotation: 6 }, { y: 0, opacity: 1, rotation: 2, duration: 0.3, ease: "back.out(2)" }, 24.95);
+roll("#s60a", 16, 25.05, 0.8); roll("#s60b", 10, 25.12, 0.85);
+drop("#bowl1", 28.00, -28, 0.4);
+drop("#bowl2", 28.28, 24, 0.4);
+whipOut("#sJ", 29.92);
+
+/* ===== L 29.92–31.96 ===== */
+show("#sL", 29.92, 31.96);
+whipIn("#sL", 29.92);
+tl.set("#camL", { transformOrigin: "540px 1100px" }, 29.92);
+tl.fromTo("#camL", { scale: 1 }, { scale: 1.06, duration: 2.0, ease: "none" }, 29.95);
+tl.fromTo("#handL", { y: 760, rotation: 8 }, { y: 0, rotation: 0, duration: 0.55, ease: "power3.out" }, 30.00);
+draw("#tickL", 30.84, 0.26, "power2.out");
+tiltOut("#sL", 31.52, -1920);
+
+/* ===== M 31.52–35.62 ===== */
+show("#sM", 31.52, 35.62);
+tiltIn("#sM", 31.52, 1920);
+tl.set("#camM", { transformOrigin: "535px 1083px" }, 31.52);
+tl.fromTo("#camM", { scale: 1 }, { scale: 1.05, duration: 1.1, ease: "none" }, 31.95);
+tl.to("#camM", { scale: 1.15, duration: 1.85, ease: "power1.inOut" }, 33.05);
+tl.to("#camM", { scale: 1.17, duration: 0.7, ease: "none" }, 34.90);
+tl.fromTo("#clockW", { x: 900, rotation: 14 }, { x: 0, rotation: 0, duration: 0.5, ease: "expo.out" }, 31.68);
+tl.set("#hourH", { rotation: 30, svgOrigin: "375 383" }, 31.52);
+tl.fromTo("#minH", { rotation: 0, svgOrigin: "375 383" }, { rotation: 360, svgOrigin: "375 383", duration: 1.8, ease: "power2.inOut" }, 33.10);
+tl.to("#hourH", { rotation: 60, svgOrigin: "375 383", duration: 1.8, ease: "power2.inOut" }, 33.10);
+tl.to("#wedge", { strokeDashoffset: 0, duration: 1.8, ease: "power2.inOut" }, 33.10);
+tl.to("#wedge", { stroke: "rgba(252,190,81,.85)", duration: 0.25 }, 34.90);
+whipOut("#sM", 35.32);
+
+/* ===== N 35.32–39.50 ===== */
+show("#sN", 35.32, 39.6);
+whipIn("#sN", 35.32);
+tl.set("#camN", { transformOrigin: "540px 1100px" }, 35.32);
+tl.fromTo("#camN", { scale: 1.12 }, { scale: 1.0, duration: 3.9, ease: "power1.out" }, 35.60);
+tl.fromTo("#thaliN", { x: -800, rotation: -15 }, { x: 0, rotation: 0, duration: 0.45, ease: "expo.out" }, 35.48);
+tl.fromTo("#glassN", { x: 800, rotation: 15 }, { x: 0, rotation: 0, duration: 0.42, ease: "expo.out" }, 36.38);
+tl.fromTo("#divN", { scaleY: 0, transformOrigin: "50% 0%" }, { scaleY: 1, duration: 0.3, ease: "power3.out" }, 36.55);
+tl.fromTo("#pillN", { scale: 0 }, { scale: 1, duration: 0.3, ease: "back.out(2)" }, 36.80);
+for (let i = 0; i < 10; i++)
+  tl.fromTo("#tr" + i, { scale: 0, y: 40 }, { scale: 1, y: 0, duration: 0.28, ease: "back.out(2.5)" }, 37.40 + i * 0.06);
+draw("#tickN1", 38.00, 0.26, "power2.out");
+draw("#tickN2", 38.30, 0.26, "power2.out");
+
+/* ===== titles (17 pairs) ===== */
+title("#T1", 0.10, 1.47, 2.78);
+title("#T2", 2.90, 3.85, 4.80);
+title("#T3", 5.10, 5.58, 6.30);
+title("#T4", 6.40, 7.70, 9.15);
+title("#T5", 9.40, 10.00, 13.30);
+title("#T6", 13.60, 14.40, 15.30);
+title("#T7", 15.85, 16.80, 17.50);
+title("#T8", 17.70, 19.12, 20.10);
+title("#T9", 20.25, 20.84, 21.52);
+title("#T10", 21.54, 21.59, 22.93, true);
+title("#T11", 23.05, 23.24, 23.98);
+title("#T12", 24.05, 24.51, 27.62);
+title("#T13", 27.90, 28.38, 29.88);
+title("#T14", 30.05, 30.84, 31.48);
+title("#T15", 31.70, 33.10, 35.28);
+title("#T16", 35.48, 36.38, 37.15);
+title("#T17", 37.28, 37.83, null);
+
+tl.set({}, {}, 39.5);
+window.__timelines["main"] = tl;
+</script>
+</body>
+</html>

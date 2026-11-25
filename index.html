@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1080, height=1920">
+<!-- Meanwhile Mayank style reel — STARTER (skill: meanwhile-mayank-style-reels).
+     Three demo scenes show every helper once. Replace the scenes with your own beat sheet; keep the CSS,
+     the helpers, the titles block, the notebook overlay and the audio layout.
+     Full worked film to copy moves from: examples/chai_v4/index.html -->
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+<style>
+@font-face { font-family: "Anton"; src: url("assets/fonts/Anton-Regular.ttf") format("truetype"); font-display: block; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1080px; height: 1920px; overflow: hidden; background: #120b06; }
+#root { position: relative; width: 1080px; height: 1920px; overflow: hidden; background: #120b06; font-family: "Anton", sans-serif; }
+
+/* ---------- scenes + camera (one .cam per scene, one transformOrigin per scene) ---------- */
+.scene { position: absolute; inset: 0; opacity: 0; overflow: hidden; }
+.cam { position: absolute; inset: 0; }
+.bg { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; object-fit: cover; }
+.ruled { position: absolute; inset: 0; background: repeating-linear-gradient(180deg, rgba(0,0,0,0) 0 40px, rgba(70,45,0,.07) 40px 41px); }
+.pw { position: absolute; filter: drop-shadow(0 22px 26px rgba(0,0,0,.45)) drop-shadow(0 4px 6px rgba(0,0,0,.35)); }
+.pw img { display: block; width: 100%; height: auto; }
+
+/* ---------- titles: Anton, x 97, Line 1 92 px cream, Line 2 140 px gradient + glow ---------- */
+#titles { position: absolute; inset: 0; z-index: 85; pointer-events: none; }
+.title { position: absolute; left: 97px; top: 272px; opacity: 0; }
+.l1 { font-size: 92px; letter-spacing: .015em; line-height: .95; color: #FCEEDA; white-space: nowrap;
+      text-shadow: 0 0 18px rgba(255,214,160,.55), 0 2px 6px rgba(0,0,0,.45); }
+.l2-mask { overflow: hidden; padding: 4px 40px 10px 0; margin-right: -40px; }
+.l2 { font-size: 140px; letter-spacing: .03em; line-height: .98; white-space: nowrap; color: transparent;
+      -webkit-background-clip: text; background-clip: text; }
+.g-pink   { filter: drop-shadow(0 3px 5px rgba(0,0,0,.55)) drop-shadow(0 0 18px rgba(253,98,114,.55)); }  .g-pink .l2   { background-image: linear-gradient(180deg,#FE949F 12%,#FD6272 88%); }
+.g-peach  { filter: drop-shadow(0 3px 5px rgba(0,0,0,.55)) drop-shadow(0 0 18px rgba(253,123,47,.5)); }   .g-peach .l2  { background-image: linear-gradient(180deg,#FEAC70 12%,#FD7B2F 88%); }
+.g-gold   { filter: drop-shadow(0 3px 5px rgba(0,0,0,.55)) drop-shadow(0 0 18px rgba(252,190,81,.5)); }   .g-gold .l2   { background-image: linear-gradient(180deg,#FDDE99 12%,#FCBE51 88%); }
+.g-cyan   { filter: drop-shadow(0 3px 5px rgba(0,0,0,.55)) drop-shadow(0 0 18px rgba(113,250,253,.45)); } .g-cyan .l2   { background-image: linear-gradient(180deg,#D4F9F9 12%,#71FAFD 88%); }
+.g-lime   { filter: drop-shadow(0 3px 5px rgba(0,0,0,.55)) drop-shadow(0 0 18px rgba(155,232,48,.45)); }  .g-lime .l2   { background-image: linear-gradient(180deg,#E6FF9E 12%,#9BE830 88%); }
+.g-violet { filter: drop-shadow(0 3px 5px rgba(0,0,0,.55)) drop-shadow(0 0 18px rgba(142,107,255,.5)); } .g-violet .l2 { background-image: linear-gradient(180deg,#D9C8FF 12%,#8E6BFF 88%); }
+
+/* ---------- physical split-flap counter plate ---------- */
+.plate { position: absolute; display: flex; align-items: center; gap: 10px; padding: 16px 22px; background: #F3E6CC;
+         border: 3px solid #C8202F; outline: 2px solid #C8202F; outline-offset: -11px; border-radius: 10px;
+         box-shadow: 0 18px 30px rgba(0,0,0,.45), inset 0 2px 0 rgba(255,255,255,.6); }
+.tile { width: 86px; height: 120px; overflow: hidden; background: linear-gradient(#3a2c20,#211810); border-radius: 6px;
+        box-shadow: inset 0 0 0 2px rgba(0,0,0,.5), inset 0 -2px 0 rgba(255,255,255,.08); position: relative; }
+.tile::after { content: ""; position: absolute; left: 0; right: 0; top: 59px; height: 2px; background: rgba(0,0,0,.6); }
+.strip div { height: 120px; line-height: 120px; text-align: center; font-size: 96px; color: #F3E6CC; }
+.unit { font-size: 100px; color: #C8202F; line-height: 1; padding-left: 6px; }
+
+/* ---------- evidence card (real HTML text, serif, >= 28 px) ---------- */
+.card { position: absolute; width: 620px; padding: 30px 34px 28px; background: #F6EEDC; color: #2a1d12; opacity: 0;
+        font-family: Georgia, "Times New Roman", serif; box-shadow: 0 24px 40px rgba(0,0,0,.5); border-radius: 4px; }
+.card .src { font-size: 28px; letter-spacing: .08em; text-transform: uppercase; color: #8a2b1e; font-weight: bold; }
+.card .hl  { font-size: 38px; line-height: 1.15; margin-top: 10px; font-weight: bold; }
+.card .by  { font-size: 28px; margin-top: 12px; color: #6b5a48; }
+.pin { position: absolute; left: 290px; top: -22px; width: 44px; height: 44px; border-radius: 50%;
+       background: radial-gradient(circle at 35% 35%, #ff8a8a, #d0182b 55%, #7a0613); box-shadow: 0 8px 10px rgba(0,0,0,.45); }
+.spot { position: absolute; border-radius: 50%; opacity: 0; background: radial-gradient(closest-side, rgba(255,226,140,.55), rgba(255,200,80,0)); }
+
+/* ---------- notebook overlay: top vignette, crease at 62.5%, 7 holes, grain ---------- */
+#vig { position: absolute; inset: 0; z-index: 70; pointer-events: none;
+       background: linear-gradient(180deg, rgba(20,10,0,.78) 0%, rgba(20,10,0,.55) 18%, rgba(0,0,0,0) 34%),
+                   radial-gradient(ellipse at 50% 55%, rgba(0,0,0,0) 58%, rgba(0,0,0,.42) 100%); }
+#overlay { position: absolute; inset: 0; z-index: 90; pointer-events: none; }
+.crease { position: absolute; top: 0; bottom: 0; left: 660px; width: 30px;
+          background: linear-gradient(90deg, rgba(0,0,0,0) 0px, rgba(0,0,0,.16) 4px, rgba(0,0,0,.16) 11px, rgba(0,0,0,0) 15px,
+                                             rgba(255,255,255,0) 17px, rgba(255,255,255,.14) 20px, rgba(255,255,255,.14) 25px, rgba(255,255,255,0) 28px); }
+.hole { position: absolute; left: 31px; width: 24px; height: 24px; border-radius: 50%; background: rgba(20,12,6,.78);
+        box-shadow: inset 0 3px 4px rgba(0,0,0,.7), 0 1px 0 rgba(255,255,255,.2); }
+.grain { position: absolute; inset: 0; background: url("assets/img/grain.png"); opacity: .07; mix-blend-mode: overlay; }
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="main" data-start="0" data-duration="10" data-width="1080" data-height="1920">
+
+<!-- ===== A 0.00–3.30  mustard notebook: coins drop & stack into a column, punch-in (drop & settle, stack) ===== -->
+<div id="sA" class="scene"><div class="cam" id="camA">
+  <img class="bg" src="assets/img/B11_mustard_paper.jpg" alt=""><div class="ruled"></div>
+  <div class="pw" id="c0" style="left:360px; top:1400px; width:360px;"><img src="assets/img/demo_coin.png" alt=""></div>
+  <div class="pw" id="c1" style="left:360px; top:1370px; width:360px;"><img src="assets/img/demo_coin.png" alt=""></div>
+  <div class="pw" id="c2" style="left:360px; top:1340px; width:360px;"><img src="assets/img/demo_coin.png" alt=""></div>
+  <div class="pw" id="c3" style="left:360px; top:1310px; width:360px;"><img src="assets/img/demo_coin.png" alt=""></div>
+  <div class="pw" id="c4" style="left:360px; top:1280px; width:360px;"><img src="assets/img/demo_coin.png" alt=""></div>
+  <div class="pw" id="c5" style="left:360px; top:1250px; width:360px;"><img src="assets/img/demo_coin.png" alt=""></div>
+</div></div>
+
+<!-- ===== B 3.10–6.70  walnut desk: whip in, counter plate rolls to 57 %, evidence card slides up (counter, card) ===== -->
+<div id="sB" class="scene"><div class="cam" id="camB">
+  <img class="bg" src="assets/img/B6_walnut_desk.jpg" alt="">
+  <div class="plate" id="pB" style="left:300px; top:720px;">
+    <div class="tile"><div class="strip" id="sBa" data-layout-ignore></div></div>
+    <div class="tile"><div class="strip" id="sBb" data-layout-ignore></div></div>
+    <span class="unit">%</span>
+  </div>
+  <div class="card" id="cardB" style="left:230px; top:1120px;"><div class="pin"></div>
+    <div class="src">SOURCE · YEAR</div>
+    <div class="hl">Quote the source exactly</div>
+    <div class="by">Publisher / survey name</div>
+  </div>
+</div></div>
+
+<!-- ===== C 6.40–10.00  emerald tiles: tilt in, spotlight, red arrow draws into the target, tick below (draw-on, spotlight)
+     + the camera EXPLAINS: push to the coin, ride the arrow, push to the tick, shake on the hit (look/follow/shake) ===== -->
+<div id="sC" class="scene"><div class="cam" id="camC"><div class="shake" style="position:absolute; inset:0;">
+  <img class="bg" src="assets/img/B10_emerald_tiles.jpg" alt="">
+  <div class="spot" id="spotC" style="left:340px; top:900px; width:640px; height:640px;"></div>
+  <div class="pw" id="coinC" style="left:480px; top:1110px; width:360px;"><img src="assets/img/demo_coin.png" alt=""></div>
+  <svg style="position:absolute; inset:0; width:1080px; height:1920px; overflow:visible;" viewBox="0 0 1080 1920">
+    <defs><filter id="fShadow" x="-50%" y="-50%" width="200%" height="200%"><feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#000" flood-opacity=".35"/></filter>
+      <filter id="fGlow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="9" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+    <path class="draw" id="arrowPathC" d="M 250 1000 C 290 830, 480 830, 560 1080" fill="none" stroke="#E3243B" stroke-width="18" stroke-linecap="round" filter="url(#fShadow)"/>
+    <g transform="translate(560 1080) rotate(68)"><polygon id="arrowHeadC" points="34,0 -18,-26 -18,26" fill="#E3243B" filter="url(#fShadow)" opacity="0"/></g>
+    <path class="draw" id="tickC" d="M 590 1390 L 640 1440 L 740 1330" fill="none" stroke="#3BE07A" stroke-width="26" stroke-linecap="round" stroke-linejoin="round" filter="url(#fGlow)"/>
+  </svg>
+</div></div></div>
+
+<div id="vig" data-layout-allow-occlusion></div>
+
+<!-- ===== TITLES: one pair per spoken phrase. Measure with scripts/fit_titles.py ===== -->
+<div id="titles">
+  <div class="title" id="T1"><div class="l1">LINE ONE SETUP</div><div class="l2-glow g-gold"><div class="l2-mask"><div class="l2">PUNCH WORD?</div></div></div></div>
+  <div class="title" id="T2"><div class="l1">BIG NUMBER</div><div class="l2-glow g-pink"><div class="l2-mask"><div class="l2">57% SAY YES</div></div></div></div>
+  <div class="title" id="T3"><div class="l1">THE MECHANISM</div><div class="l2-glow g-cyan"><div class="l2-mask"><div class="l2">GOES HERE</div></div></div></div>
+</div>
+
+<!-- ===== NOTEBOOK OVERLAY (always on top) ===== -->
+<div id="overlay" data-layout-allow-occlusion>
+  <div class="crease"></div>
+  <div class="hole" style="top:288px"></div><div class="hole" style="top:508px"></div><div class="hole" style="top:728px"></div>
+  <div class="hole" style="top:948px"></div><div class="hole" style="top:1168px"></div><div class="hole" style="top:1388px"></div>
+  <div class="hole" style="top:1608px"></div>
+  <div class="grain"></div>
+</div>
+
+<!-- ===== AUDIO =====
+  Voice-over:  <audio id="vo"  src="assets/audio/voiceover.mp3" data-start="0" data-duration="<len>" data-volume="1.0"></audio>
+  Music bed:   build it with scripts/music_bed.sh, then
+               <audio id="bgm" src="assets/audio/bgm_mix.wav" data-start="0" data-duration="<len>" data-volume="1.0"></audio>
+  SFX: one per physical event, 0.30–0.50 volume. riser_clean.mp3 needs data-media-start="1.3". -->
+<audio id="x01" src="assets/audio/metal_click.mp3"  data-start="0.55" data-duration="0.4" data-volume="0.35"></audio>
+<audio id="x02" src="assets/audio/metal_click.mp3"  data-start="0.85" data-duration="0.4" data-volume="0.35"></audio>
+<audio id="x03" src="assets/audio/metal_click.mp3"  data-start="1.15" data-duration="0.4" data-volume="0.35"></audio>
+<audio id="x04" src="assets/audio/boom_low.mp3"     data-start="2.10" data-duration="1.0" data-volume="0.40"></audio>
+<audio id="x05" src="assets/audio/whoosh_soft.mp3"  data-start="3.08" data-duration="0.9" data-volume="0.42"></audio>
+<audio id="x06" src="assets/audio/metal_click.mp3"  data-start="4.25" data-duration="0.3" data-volume="0.40"></audio>
+<audio id="x07" src="assets/audio/swoosh_light.mp3" data-start="4.62" data-duration="0.8" data-volume="0.38"></audio>
+<audio id="x08" src="assets/audio/whoosh_riser.mp3" data-start="6.35" data-duration="1.0" data-volume="0.40"></audio>
+<audio id="x09" src="assets/audio/ding_bell.mp3"    data-start="8.95" data-duration="1.0" data-volume="0.35"></audio>
+
+</div>
+
+<script>
+window.__timelines = window.__timelines || {};
+const END = 10;      /* = root data-duration */
+
+/* fill counter strips (0-9 twice) and prime draw-on strokes */
+document.querySelectorAll(".strip").forEach(s => { for (let i = 0; i < 20; i++) { const d = document.createElement("div"); d.textContent = i % 10; s.appendChild(d); } });
+document.querySelectorAll(".draw").forEach(p => { const L = p.getTotalLength(); p.style.strokeDasharray = L; p.style.strokeDashoffset = L; p.style.opacity = 0; });
+
+const tl = gsap.timeline({ paused: true });
+const ROW = 120;
+let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;   /* seeded: identical every render */
+
+/* ---------- helpers (same as the approved V4 chai demo) ---------- */
+function show(sel, t0, t1) { tl.set(sel, { opacity: 1 }, t0); if (t1 != null) tl.set(sel, { opacity: 0 }, t1); }
+function whipIn(sel, t)  { tl.fromTo(sel, { x: 1080, filter: "blur(16px)" }, { x: 0, filter: "blur(0px)", duration: 0.28, ease: "power3.out" }, t); }
+function whipOut(sel, t) { tl.to(sel, { x: -1080, filter: "blur(16px)", duration: 0.28, ease: "power3.in" }, t); }
+function tiltIn(sel, t, from) { tl.fromTo(sel, { y: from }, { y: 0, duration: 0.45, ease: "power2.inOut" }, t); }
+function tiltOut(sel, t, to) { tl.to(sel, { y: to, duration: 0.45, ease: "power2.inOut" }, t); }
+function drop(sel, t, rot, dur) {            /* drop & settle: starts far above (-2300) so nothing peeks in */
+  dur = dur || 0.45;
+  tl.fromTo(sel, { y: -2300, rotation: rot }, { y: 0, rotation: 0, duration: dur, ease: "power4.in" }, t);
+  tl.fromTo(sel + " img", { filter: "blur(6px)" }, { filter: "blur(0px)", duration: dur, ease: "power4.in" }, t);
+  tl.fromTo(sel, { scaleY: 0.86, scaleX: 1.06 }, { scaleY: 1, scaleX: 1, duration: 0.16, ease: "power2.out" }, t + dur);
+}
+function roll(sel, idx, t, dur) {             /* split-flap digit roll with motion blur; idx 10-19 = digit idx-10 after a full turn */
+  tl.set(sel, { filter: "blur(4px)" }, t);
+  tl.to(sel, { y: -idx * ROW, duration: dur, ease: "power3.out" }, t);
+  tl.to(sel, { filter: "blur(0px)", duration: 0.12 }, t + dur - 0.12);
+}
+function draw(sel, t, dur, ease) { tl.set(sel, { opacity: 1 }, t); tl.to(sel, { strokeDashoffset: 0, duration: dur, ease: ease || "power2.inOut" }, t); }
+function title(id, tIn, tL2, tOut, instant) {   /* Line 1 on the phrase, Line 2 on the stressed word, out before the next shot */
+  tl.set(id, { opacity: 1 }, tIn);
+  if (!instant) tl.from(id + " .l1", { opacity: 0, y: 8, duration: 0.2, ease: "power2.out" }, tIn);
+  tl.fromTo(id + " .l2", { yPercent: 140, opacity: 0, filter: "blur(8px)" }, { yPercent: 0, opacity: 1, filter: "blur(0px)", duration: 0.16, ease: "power3.out" }, tL2);
+  if (tOut) tl.to(id, { opacity: 0, duration: 0.12 }, tOut);
+}
+
+/* ---------- camera that explains (references/camera_to_explain.md) ----------
+   look/follow/drift use transformOrigin "0 0": don't mix them with origin-based scale tweens on the same .cam.
+   (x, y) is a point on the plate; it lands at FOCUS, under the titles. The clamp never shows a black edge. */
+const FOCUS = [540, 1240];
+function camFrame(cam, x, y, s) {
+  const el = document.querySelector(cam), W = el.offsetWidth || 1080, H = el.offsetHeight || 1920;
+  const cx = Math.min(0, Math.max(1080 - W * s, FOCUS[0] - x * s));
+  const cy = Math.min(0, Math.max(1920 - H * s, FOCUS[1] - y * s));
+  return { x: cx, y: cy, scale: s };
+}
+function look(cam, t, x, y, s, dur, ease) {     /* push in / pull back / reframe onto (x, y); dur 0 = cut there */
+  tl.set(cam, { transformOrigin: "0px 0px" }, 0);
+  tl.to(cam, { ...camFrame(cam, x, y, s), duration: dur || 0.001, ease: ease || "power3.inOut" }, t);
+}
+function drift(cam, t0, t1, x, y, s0, s1) {     /* the always-on slow push (1.00 → 1.05) at one point */
+  tl.set(cam, { transformOrigin: "0px 0px" }, 0);
+  tl.fromTo(cam, camFrame(cam, x, y, s0 || 1), { ...camFrame(cam, x, y, s1 || 1.05), duration: t1 - t0, ease: "none", immediateRender: false }, t0);
+}
+function follow(cam, t, pts, s, dur) {           /* travel along points (cause → effect, process steps), with the arrow or prop */
+  const step = dur / (pts.length - 1);
+  look(cam, t - 0.001, pts[0][0], pts[0][1], s, 0);
+  pts.slice(1).forEach((p, i) => look(cam, t + i * step, p[0], p[1], s, step, i === pts.length - 2 ? "power2.out" : "none"));
+}
+function shake(cam, t, px, dur) {               /* impact: wrap the .cam content in .shake so it doesn't fight look() */
+  const n = 6, d = (dur || 0.25) / n, k = cam + " > .shake";
+  for (let i = 0; i < n; i++) tl.to(k, { x: (rnd() - 0.5) * 2 * px * (1 - i / n), y: (rnd() - 0.5) * 2 * px * (1 - i / n), duration: d, ease: "none" }, t + i * d);
+  tl.to(k, { x: 0, y: 0, duration: d, ease: "power2.out" }, t + n * d);
+}
+function rack(sel, t, px, dur) { tl.to(sel, { filter: "blur(" + px + "px)", duration: dur || 0.35, ease: "power2.inOut" }, t); }   /* focus pull on the set */
+function depth(scene, t, dx, dy, dur) {          /* parallax: layers with data-depth (0.6 far … 1.3 near) move dx*depth */
+  document.querySelectorAll(scene + " [data-depth]").forEach(el => {
+    const k = parseFloat(el.dataset.depth);
+    tl.to(el, { x: "+=" + dx * k, y: "+=" + (dy || 0) * k, duration: dur, ease: "power1.inOut" }, t);
+  });
+}
+
+/* ===== A 0–3.30: drift, coins drop one by one into a column, punch-in on the last ===== */
+show("#sA", 0, 3.30);
+tl.set("#camA", { transformOrigin: "540px 1350px" }, 0);
+tl.fromTo("#camA", { scale: 1 }, { scale: 1.05, duration: 2.0, ease: "none" }, 0);
+["#c0", "#c1", "#c2", "#c3", "#c4", "#c5"].forEach((c, i) => drop(c, 0.10 + i * 0.30, (rnd() - 0.5) * 40));
+tl.to("#camA", { scale: 1.35, duration: 0.40, ease: "expo.out" }, 2.10);
+tl.to("#camA", { scale: 1.40, duration: 0.70, ease: "none" }, 2.50);
+whipOut("#sA", 3.10);
+
+/* ===== B 3.10–6.70: whip in, plate drops, digits roll to 57, card slides up, pin pops ===== */
+show("#sB", 3.10, 6.70);
+whipIn("#sB", 3.10);
+tl.set("#camB", { transformOrigin: "540px 1000px" }, 3.10);
+tl.fromTo("#camB", { scale: 1 }, { scale: 1.05, duration: 2.6, ease: "none" }, 3.10);   /* drift ends where the reframe starts */
+tl.fromTo("#pB", { y: -1500, rotation: -8 }, { y: 0, rotation: -2, duration: 0.45, ease: "power4.in" }, 3.35);
+roll("#sBa", 15, 3.85, 0.85); roll("#sBb", 17, 3.92, 0.90);
+tl.fromTo("#cardB", { y: 900, rotation: -3, opacity: 0 }, { y: 0, rotation: -1.5, opacity: 1, duration: 0.5, ease: "expo.out" }, 4.60);
+tl.fromTo("#cardB .pin", { scale: 1.4, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.2, ease: "back.out(3)" }, 5.05);
+tl.to("#camB", { scale: 1.18, y: -120, duration: 0.7, ease: "power3.inOut" }, 5.70);   /* reframe on the card */
+tiltOut("#sB", 6.40, 1920);
+
+/* ===== C 6.40–END: tilt in, spotlight + coin pop, arrow draws, head pops, tick below ===== */
+show("#sC", 6.40, null);
+tiltIn("#sC", 6.40, -1920);
+drift("#camC", 6.40, 7.00, 660, 1240);                       /* settle after the tilt */
+look("#camC", 7.05, 660, 1290, 1.22, 0.40, "expo.out");      /* "this coin": push in on the coin as it pops */
+tl.fromTo("#spotC", { scale: 0.3, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, ease: "power2.out" }, 6.95);
+tl.fromTo("#coinC", { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.3, ease: "back.out(2)" }, 7.15);
+follow("#camC", 7.62, [[250, 1000], [400, 900], [560, 1080]], 1.25, 0.60);   /* cause → effect: ride the arrow as it draws */
+draw("#arrowPathC", 7.70, 0.5);
+tl.fromTo("#arrowHeadC", { scale: 0, opacity: 0, transformOrigin: "50% 50%" }, { scale: 1, opacity: 1, duration: 0.15, ease: "back.out(3)" }, 8.20);
+draw("#tickC", 8.90, 0.3);
+look("#camC", 8.55, 665, 1385, 1.32, 0.40, "power3.inOut");  /* the result: reframe on the tick before it draws */
+shake("#camC", 8.95, 9, 0.24);                                /* impact on the ding */
+look("#camC", 9.35, 600, 1240, 1.0, 0.60, "power2.inOut");   /* recap: pull back to the whole set */
+
+/* ===== titles ===== */
+title("#T1", 0.15, 0.95, 3.00);
+title("#T2", 3.50, 4.80, 6.30);
+title("#T3", 6.90, 7.60, null);
+
+tl.set({}, {}, END);
+window.__timelines["main"] = tl;
+</script>
+</body>
+</html>
